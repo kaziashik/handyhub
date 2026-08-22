@@ -1,15 +1,16 @@
 model User {
-    id         String     @id @default(uuid())
-    name       String
-    email      String     @unique
-    password   String
-    role       Role       @default(CUSTOMER)
-    isVerified Boolean    @default(false)
-    status     UserStatus @default(ACTIVE)
-    avatarUrl  String?
-    phone      String?
-    createdAt  DateTime   @default(now())
-    updatedAt  DateTime   @updatedAt
+    id            String     @id @default(uuid())
+    name          String
+    email         String     @unique
+    password      String
+    role          Role       @default(CUSTOMER)
+    isVerified    Boolean    @default(false)
+    status        UserStatus @default(ACTIVE)
+    imageUrl      String     @default("")
+    imagePublicId String     @default("")
+    phone         String?
+    createdAt     DateTime   @default(now())
+    updatedAt     DateTime   @updatedAt
 
     technicianProfile  TechnicianProfile?
     customerBookings   Booking[]          @relation("CustomerBookings")
