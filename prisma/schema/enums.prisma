@@ -1,0 +1,43 @@
+enum Role {
+  ADMIN
+  CUSTOMER
+  TECHNICIAN
+}
+
+enum UserStatus {
+  ACTIVE
+  DEACTIVATED
+  BANNED
+  DELETED
+}
+
+enum TechnicianStatus {
+  AVAILABLE
+  BUSY
+  OFFLINE
+}
+
+enum BookingStatus {
+  REQUESTED
+  ACCEPTED
+  DECLINED
+  PAID
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+
+enum PaymentProvider {
+  STRIPE
+  BKASH
+  SSLCOMMERZ
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
