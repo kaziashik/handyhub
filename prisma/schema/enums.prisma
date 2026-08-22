@@ -41,3 +41,8 @@ enum PaymentStatus {
   REFUNDED
   CANCELLED
 }
+
+enum AuthProvider {
+  GOOGLE
+  CREDENTIAL
+}

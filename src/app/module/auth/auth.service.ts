@@ -4,13 +4,14 @@ import path from "path";
 import bcrypt from "bcryptjs";
 import config from "../../config";
 import { prisma } from "../../lib/prisma";
-import { IRegisterUserPayload, IVerifyEmailPayload } from "./auth.interface";
+import { ILoginUserPayload, IRegisterUserPayload, IRequestUser, IVerifyEmailPayload } from "./auth.interface";
 import { redisClient } from "../../lib/redits";
 import { transporter } from "../../lib/nodemailer";
 import ejs from "ejs";
 import { jwtUtils } from "../../middleware/jwt";
 import { SignOptions } from "jsonwebtoken";
 import type { StringValue } from "ms";
+import { UserStatus } from "../../../generated/prisma/enums";
 
 const registerUser = async (payload: IRegisterUserPayload) => {
   const { name, password, role, phone } = payload;
@@ -195,92 +196,91 @@ const refreshToken = jwtUtils.createToken(
 
 
 
-// const loginUser = async (payload: ILoginUserPayload) => {
-//   const { password } = payload;
-//   const email = payload.email.trim().toLowerCase();
+const loginUser = async (payload: ILoginUserPayload) => {
+  const { password } = payload;
+  const email = payload.email.trim().toLowerCase();
 
-//   const user = await prisma.user.findUnique({
-//     where: { email },
-//   });
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
 
-//   if (!user) {
-//     throw new Error("User not found");
-//   }
+  if (!user) {
+    throw new Error("User not found");
+  }
 
-//   if (user.status === UserStatus.BLOCKED) {
-//     throw new Error("User is blocked");
-//   }
+  if (user.status === UserStatus.BANNED) {
+    throw new Error("User is blocked");
+  }
 
-//   if (user.isDeleted || user.status === UserStatus.DELETED) {
-//     throw new Error("User is deleted");
-//   }
+if (user.status === UserStatus.DELETED) {
+  throw new Error("User is deleted");
+}
 
-//   if (user.password === null && user.googleId !== null) {
-//     throw new Error(
-//       "User Alredy Registered With Google Login. Please Use Google Login",
-//     );
-//   }
+  if (user.password === null && user.googleId !== null) {
+    throw new Error(
+      "User Alredy Registered With Google Login. Please Use Google Login",
+    );
+  }
 
-//   const isPasswordMatched = await bcrypt.compare(
-//     password,
-//     user.password as string,
-//   );
+  const isPasswordMatched = await bcrypt.compare(
+    password,
+    user.password as string,
+  );
 
-//   if (!isPasswordMatched) {
-//     throw new Error("Invalid credentials");
-//   }
+  if (!isPasswordMatched) {
+    throw new Error("Invalid credentials");
+  }
 
-//   const jwtPayload = {
-//     userId: user.id,
-//     name: user.name,
-//     email: user.email,
-//     role: user.role,
-//   };
+  const jwtPayload = {
+    userId: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
 
-//   const accessToken = jwtUtils.createToken(
-//     jwtPayload,
-//     config.jwt_access_secret,
-//     config.jwt_access_expires_in as SignOptions,
-//   );
+  const accessToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwt_access_secret,
+    config.jwt_access_expires_in as StringValue,
+  );
 
-//   const refreshToken = jwtUtils.createToken(
-//     jwtPayload,
-//     config.jwt_refresh_secret,
-//     config.jwt_refresh_expires_in as SignOptions,
-//   );
+  const refreshToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwt_refresh_secret,
+    config.jwt_refresh_expires_in as StringValue,
+  );
 
-//   return {
-//     accessToken,
-//     refreshToken,
-//   };
-// };
+  return {
+    accessToken,
+    refreshToken,
+  };
+};
 
-// const getMe = async (user: IRequestUser) => {
-//   const isUserExists = await prisma.user.findUnique({
-//     where: {
-//       id: user.userId,
-//     },
-//     include: {
-//       patient: true,
-//     },
-//     omit: {
-//       password: true,
-//     },
-//   });
+const getMe = async (user: IRequestUser) => {
+  const isUserExists = await prisma.user.findUnique({
+    where: {
+      id: user.userId,
+    },
+    include: {
+      technicianProfile: true,
+    },
+    omit: {
+      password: true,
+    },
+  });
 
-//   if (!isUserExists) {
-//     throw new Error("User not found");
-//   }
+  if (!isUserExists) {
+    throw new Error("User not found");
+  }
 
-//   return isUserExists;
-// };
-
+  return isUserExists;
+};
 
 export const AuthService = {
   registerUser,
   verifyUserEmail,
-//   loginUser,
-//   getMe,
+  loginUser,
+  getMe,
 //   refreshToken,
 //   googleLogin,
 //   forgotPassword,
