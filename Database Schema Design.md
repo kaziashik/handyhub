@@ -251,20 +251,7 @@ No many-to-many relationships exist in this schema. (A future "favorite technici
 
 Rendered version: see the Mermaid `erDiagram` widget generated during the build, or view it live at your [drawSQL diagram](https://drawsql.app/teams/kazi-ashikur/diagrams/handyhub).
 
-```mermaid
-erDiagram
-  USER ||--o| TECHNICIAN_PROFILE : has
-  TECHNICIAN_PROFILE ||--o{ AVAILABILITY : defines
-  TECHNICIAN_PROFILE ||--o{ SERVICE : offers
-  CATEGORY ||--o{ SERVICE : groups
-  USER ||--o{ BOOKING : requests
-  USER ||--o{ BOOKING : fulfills
-  SERVICE ||--o{ BOOKING : booked_as
-  BOOKING ||--o{ PAYMENT : paid_by
-  BOOKING ||--o| REVIEW : reviewed_in
-  USER ||--o{ REVIEW : writes
-  TECHNICIAN_PROFILE ||--o{ REVIEW : receives
-```
+![HandyHub ER Diagram](./image.png)
 
 ---
 
