@@ -187,7 +187,7 @@
   <div id="phases"></div>
 
   <footer>
-    <div class="stamp-note">Stored locally to your account — reopen this artifact anytime.</div>
+    <div class="stamp-note">Saved in this browser — reopening this file here will keep your progress.</div>
     <button class="reset-btn" id="resetBtn">Reset all progress</button>
   </footer>
 </div>
@@ -394,7 +394,7 @@ function updateOverall(){
     : `${done} of ${total} tasks checked off.`;
 }
 
-async function onToggle(id, pIdx){
+function onToggle(id, pIdx){
   if (completed.has(id)) completed.delete(id); else completed.add(id);
   render();
   // re-open the phase we just touched
@@ -402,17 +402,17 @@ async function onToggle(id, pIdx){
   const tasksEl = document.querySelectorAll(".phase")[pIdx].querySelector(".tasks");
   tasksEl.style.maxHeight = tasksEl.scrollHeight + "px";
   try {
-    await window.storage.set(STORAGE_KEY, JSON.stringify(Array.from(completed)), false);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(completed)));
   } catch (e) {
     console.error("Failed to save progress:", e);
   }
 }
 
-async function loadProgress(){
+function loadProgress(){
   try {
-    const result = await window.storage.get(STORAGE_KEY, false);
-    if (result && result.value) {
-      completed = new Set(JSON.parse(result.value));
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      completed = new Set(JSON.parse(raw));
     }
   } catch (e) {
     // no saved progress yet, start fresh
@@ -421,12 +421,12 @@ async function loadProgress(){
   render();
 }
 
-document.getElementById("resetBtn").addEventListener("click", async () => {
+document.getElementById("resetBtn").addEventListener("click", () => {
   if (!confirm("Reset all checked tasks? This can't be undone.")) return;
   completed = new Set();
   render();
   try {
-    await window.storage.set(STORAGE_KEY, JSON.stringify([]), false);
+    localStorage.removeItem(STORAGE_KEY);
   } catch (e) {
     console.error("Failed to reset progress:", e);
   }
