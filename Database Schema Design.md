@@ -251,7 +251,7 @@ No many-to-many relationships exist in this schema. (A future "favorite technici
 
 Rendered version: see the Mermaid `erDiagram` widget generated during the build, or view it live at your [drawSQL diagram](https://drawsql.app/teams/kazi-ashikur/diagrams/handyhub).
 
-![HandyHub ER Diagram](./image.png)
+![HandyHub ER Diagram](./drawSQL-image-export-2026-08-23.jpg)
 
 ---
 
