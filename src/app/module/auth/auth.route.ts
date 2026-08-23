@@ -36,6 +36,14 @@ router.post("/refresh-token", AuthController.refreshToken);
 
 router.post("/logout", AuthController.logout);
 
+router.post("/forgot-password",
+	validateRequest(userValidation.ForgotPasswordZodSchema),
+	 AuthController.forgotPassword);
+
+   router.post("/reset-password",
+	validateRequest(userValidation.ResetPasswordZodSchema),
+	 AuthController.resetPassword);
+
 
 
 

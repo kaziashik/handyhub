@@ -3,6 +3,7 @@ import { Role } from "../../generated/prisma/enums";
 import { prisma } from "../lib/prisma";
 import config from "../config";
 
+
 export const seedSuperAdmin = async () => {
   try {
     const isSuperAdminExist = await prisma.user.findFirst({
