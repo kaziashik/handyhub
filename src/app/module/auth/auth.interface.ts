@@ -13,6 +13,7 @@ export interface IRegisterUserPayload {
   role: Extract<Role, "CUSTOMER" | "TECHNICIAN">;
   phone?: string;
 }
+
 export interface IVerifyEmailPayload {
   email: string;
   otp: string;
