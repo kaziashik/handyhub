@@ -1,8 +1,7 @@
 import bcrypt from "bcryptjs";
-import { Role } from "../../generated/prisma/enums";
+import { Role, AuthProvider } from "../../generated/prisma/enums";
 import { prisma } from "../lib/prisma";
 import config from "../config";
-
 
 export const seedSuperAdmin = async () => {
   try {
@@ -15,23 +14,36 @@ export const seedSuperAdmin = async () => {
       return;
     }
 
-    const { super_admin_name: name, super_admin_email: email, super_admin_password: password } = config;
+    const {
+      super_admin_name: name,
+      super_admin_email: email,
+      super_admin_password: password,
+    } = config;
 
     if (!name || !email || !password) {
-      throw new Error("Super admin name, email, or password missing in env file!");
+      throw new Error(
+        "Super admin name, email, or password missing in env file!",
+      );
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
     const hashedPassword = await bcrypt.hash(password, config.bcrypt_salt_rounds);
 
     const superAdmin = await prisma.user.create({
       data: {
         name,
-        email,
-        password: hashedPassword,
+        email: normalizedEmail,
         role: Role.ADMIN,
         isVerified: true,
+        auths: {
+          create: {
+            provider: AuthProvider.CREDENTIALS,
+            providerId: normalizedEmail,
+            password: hashedPassword,
+          },
+        },
       },
-      omit: { password: true },
+      include: { auths: { omit: { password: true } } },
     });
 
     console.log("Super admin created:", superAdmin);

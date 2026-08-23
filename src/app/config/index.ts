@@ -24,12 +24,17 @@ export default {
     bak_url: process.env.APP_URL,
     app_url: process.env.APP_URL,
     frontend_url: process.env.FRONTEND_URL,
-    bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS!,
+    bcrypt_salt_rounds: Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
     jwt_access_secret: process.env.JWT_ACCESS_SECRET!,
     jwt_refresh_secret: process.env.JWT_REFRESH_SECRET!,
     jwt_access_expires_in: process.env.JWT_ACCESS_EXPIRES_IN!,
     jwt_refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN!,
-    google_client_id: process.env.GOOGLE_CLIENT_ID!,
+    
+
+
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID!,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET!,
+  GOOGLE_CLIENT_CALLBACK_URL: process.env.GOOGLE_CLIENT_CALLBACK_URL!,
 
 
     super_admin_name : process.env.SUPER_ADMIN_NAME!,

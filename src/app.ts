@@ -6,6 +6,8 @@ import express, { Application, Request, Response } from "express";
 import config from "./app/config";
 import { AuthRoutes } from "./app/module/auth/auth.route";
 import { UserRoutes } from "./app/module/user/user.route";
+import passport from "passport";
+
 
 const app: Application = express();
 
@@ -15,6 +17,8 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(passport.initialize());
 
 // Middleware
 app.use(express.json());

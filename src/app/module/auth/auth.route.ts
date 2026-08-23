@@ -4,6 +4,7 @@ import { AuthController } from "./auth.controller";
 import { userValidation } from "./auth.validation";
 import { Role } from "../../../generated/prisma/enums";
 import { auth } from "../../middleware/checkAuth";
+import passport from "passport";
 
 
 const router = Router();
@@ -44,6 +45,13 @@ router.post("/forgot-password",
 	validateRequest(userValidation.ResetPasswordZodSchema),
 	 AuthController.resetPassword);
 
+
+//    router.get(
+//   "/google",
+//   passport.authenticate("google", { scope: ["profile", "email"] }),
+// );
+
+router.post("/google", AuthController.googleLogin);              
 
 
 

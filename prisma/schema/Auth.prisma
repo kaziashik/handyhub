@@ -1,0 +1,14 @@
+model Auth {
+  id         String       @id @default(uuid())
+  provider   AuthProvider
+  providerId String       // email for CREDENTIALS, Google's `sub` claim for GOOGLE
+  password   String?      // only set when provider = CREDENTIALS
+  userId     String
+  user       User         @relation(fields: [userId], references: [id])
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([provider, providerId])
+  @@unique([userId, provider])
+  @@map("auths")
+}
