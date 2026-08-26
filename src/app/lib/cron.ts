@@ -3,7 +3,7 @@ import { prisma } from "./prisma";
 import { Role, TechinicianVerificationStatus } from "../../generated/prisma/enums";
 
 export const deleteUnverifiedTechinician = async () => {
-  cron.schedule("*/10 * * * * *", async () => {
+  cron.schedule("* */10 * * * *", async () => {
     try {
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);

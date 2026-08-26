@@ -35,11 +35,11 @@ enum PaymentProvider {
 }
 
 enum PaymentStatus {
-  PENDING
+  UNPAID
   PAID
   FAILED
-  REFUNDED
   CANCELLED
+  REFUNDED
 }
 
 enum AuthProvider {
@@ -52,4 +52,12 @@ enum TechinicianVerificationStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  ONGOING
+  COMPLETED
 }
