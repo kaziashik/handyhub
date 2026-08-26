@@ -23,6 +23,8 @@ import {
   IVerifyTechinicianEmailPayload,
 } from "./techinician.interface";
 import { RequestUser } from "../../middleware/checkAuth";
+import { IQuery } from "../../interface";
+import { TechinicianWhereInput } from "../../../generated/prisma/models";
 
 const applyAsTechinician = async (
   payload: IApplyAsTechnicianPayload,
@@ -301,9 +303,116 @@ const approveTechinician= async(payload: IApproveTechinicianPayload, reviewer: R
 
 }
 
+const getAllTechinician=async(query:IQuery)=>{
+
+  const limit = query.limit ? Number(query.limit) : 10;
+	const page = query.page ? Number(query.page) : 1;
+	const skip = (page - 1) * limit;
+	const sortBy = query.sortBy ? query.sortBy : "createdAt";
+	const sortOrder = query.sortOrder ? query.sortOrder : "desc"
+
+  const andConditions: TechinicianWhereInput[] = []
+
+  //Searching
+	if (query.searchTerm) {
+		andConditions.push({
+			OR: [
+				{ name: { contains: query.searchTerm, mode: "insensitive" } },
+				{ email: { contains: query.searchTerm, mode: "insensitive" } },
+				{
+					specialization: {
+						contains: query.searchTerm,
+						mode: "insensitive",
+					},
+				},
+				{
+					licenseNumber: {
+						contains: query.searchTerm,
+						mode: "insensitive",
+					},
+				},
+			],
+		});
+	}
+
+  //filtering
+	if (query.specialization) {
+		andConditions.push({
+			specialization: { equals: query.specialization, mode: "insensitive" },
+		});
+	}
+
+	if (query.email) {
+		andConditions.push({
+			email: { contains: query.email, mode: "insensitive" },
+		});
+	}
+
+	if (query.licenseNumber) {
+		andConditions.push({
+			licenseNumber: { equals: query.licenseNumber, mode: "insensitive" },
+		});
+	}
+
+	if (query.verificationStatus) {
+		andConditions.push({
+			verificationStatus: query.verificationStatus as TechinicianVerificationStatus,
+		});
+	}
+
+	andConditions.push({ isDeleted: false });
+
+
+
+	const allTechinican = await prisma.techinician.findMany({
+		where : {
+			AND : andConditions.length > 0 ? andConditions : undefined
+		},
+
+		take: limit,
+		skip: skip,
+
+
+		orderBy: {
+			// sortBy : sortOrder
+			[sortBy]: sortOrder
+		},
+
+		include:{
+			user: {
+				omit:{
+					password: true
+				}
+			},
+
+			// schedules: true,
+			// appointments: true
+			// prescriptions: true
+		}
+
+	});
+
+  const totalTechinicanCount = await prisma.techinician.count({
+		where: {
+			AND: andConditions
+		}
+	})
+
+	return {
+		data: allTechinican,
+		meta: {
+			page: page,
+			limit: limit,
+			total: totalTechinicanCount,
+			totalPages: Math.ceil(totalTechinicanCount/ limit)
+		}
+	}
+
+}
+
 export const TechinicianService = {
   applyAsTechinician,
  verifyTechinicianEmail,
   approveTechinician,
-  // getAllDoctors
+  getAllTechinician
 };

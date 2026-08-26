@@ -34,4 +34,10 @@ router.post(
 	TechinicianController.approveTechinician,
 );
 
+router.get(
+	"/all-techinician",
+	auth(Role.ADMIN),
+	TechinicianController.getAllTechinician,
+);
+
 export const TechinicianRoutes = router;

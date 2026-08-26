@@ -73,9 +73,21 @@ const approveTechinician= catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+
+const getAllTechinician=catchAsync(async (req: Request, res: Response) => {
+	const {data, meta} = await TechinicianService.getAllTechinician(req.query)
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Doctors Retrieved Successfully",
+		data: data,
+		meta : meta,
+	});
+});
+
 export const TechinicianController = {
   applyAsTechinician,
   verifyTechinicianEmail,
   approveTechinician,
-  // getAllDoctors
+  getAllTechinician
 };
