@@ -17,12 +17,15 @@ import { redisClient } from "../../lib/redits";
 import path from "path";
 import ejs from "ejs";
 import { transporter } from "../../lib/nodemailer";
-import { IApplyAsTechnicianPayload } from "./techinician.interface";
+import {
+  IApplyAsTechnicianPayload,
+  IVerifyTechinicianEmailPayload,
+} from "./techinician.interface";
 
 const applyAsTechinician = async (
   payload: IApplyAsTechnicianPayload,
   resume: Express.Multer.File | null,
- additionalFiles: Express.Multer.File[],
+  additionalFiles: Express.Multer.File[],
 ) => {
   const isUserExists = await prisma.user.findUnique({
     where: {
@@ -37,141 +40,187 @@ const applyAsTechinician = async (
     );
   }
 
-const resumeUploadResult = await new Promise<UploadApiResponse>(
-		(resolve, reject) => {
-			cloudinary.uploader
-				.upload_stream(
-					{
-						resource_type: "auto",
-					},
+  const resumeUploadResult = await new Promise<UploadApiResponse>(
+    (resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            resource_type: "auto",
+          },
 
-					async (error, result) => {
-						if (error) {
-							return reject(error);
-						}
+          async (error, result) => {
+            if (error) {
+              return reject(error);
+            }
 
-						if (!result) {
-							return reject(
-								new AppError(
-									httpStatus.INTERNAL_SERVER_ERROR,
-									"No result returned from Cloudinary",
-								),
-							);
-						}
+            if (!result) {
+              return reject(
+                new AppError(
+                  httpStatus.INTERNAL_SERVER_ERROR,
+                  "No result returned from Cloudinary",
+                ),
+              );
+            }
 
-						resolve(result);
-					},
-				)
-				.end(resume?.buffer);
-		},
-	);
+            resolve(result);
+          },
+        )
+        .end(resume?.buffer);
+    },
+  );
 
+  console.log({ resumeUploadResult });
 
-    console.log({resumeUploadResult});
+  const additionalFilesUploadResults = await Promise.all(
+    additionalFiles.map((file) => {
+      return new Promise<UploadApiResponse>((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            {
+              resource_type: "auto",
+            },
 
-    const additionalFilesUploadResults = await Promise.all(
-		additionalFiles.map((file) => {
-			return new Promise<UploadApiResponse>((resolve, reject) => {
-				cloudinary.uploader
-					.upload_stream(
-						{
-							resource_type: "auto",
-						},
+            async (error, result) => {
+              if (error) {
+                return reject(error);
+              }
 
-						async (error, result) => {
-							if (error) {
-								return reject(error);
-							}
+              if (!result) {
+                return reject(new Error("No result returned from Cloudinary"));
+              }
 
-							if (!result) {
-								return reject(new Error("No result returned from Cloudinary"));
-							}
+              resolve(result);
+            },
+          )
+          .end(file.buffer);
+      });
+    }),
+  );
 
-							resolve(result);
-						},
-					)
-					.end(file.buffer);
-			});
-		}),
-	);
+  console.log({ additionalFilesUploadResults });
 
-    console.log({ additionalFilesUploadResults });
+  const randomTechinicianPassword = Math.random().toString(36).slice(-8);
 
-    
-	const randomTechinicianPassword = Math.random().toString(36).slice(-8);
+  const hashedPassword = await bcrypt.hash(
+    randomTechinicianPassword,
+    Number(config.bcrypt_salt_rounds),
+  );
 
-    const hashedPassword = await bcrypt.hash(
-		randomTechinicianPassword,
-		Number(config.bcrypt_salt_rounds),
-	);
+  const techinicianApplication = await prisma.user.create({
+    data: {
+      ...payload.user,
+      password: hashedPassword,
+      role: Role.TECHNICIAN,
+      needPasswordChange: true,
+      techinician: {
+        create: {
+          name: payload.user.name,
+          email: payload.user.email,
+          ...payload.technician,
+          resume: resumeUploadResult.secure_url,
+          resumePublicId: resumeUploadResult.public_id,
+          additionalFiles: additionalFilesUploadResults.map((file) => ({
+            url: file.secure_url,
+            publicId: file.public_id,
+          })),
+        },
+      },
+    },
 
-    const techinicianApplication = await prisma.user.create({
-		data: {
-			...payload.user,
-			password: hashedPassword,
-			role: Role.TECHNICIAN,
-			needPasswordChange: true,
-			techinician: {
-				create: {
-					name: payload.user.name,
-					email: payload.user.email,
-					...payload.technician,
-					resume: resumeUploadResult.secure_url,
-					resumePublicId: resumeUploadResult.public_id,
-					additionalFiles: additionalFilesUploadResults.map((file) => ({
-						url: file.secure_url,
-						publicId: file.public_id,
-					})),
-				},
-			},
-		},
+    include: {
+      techinician: true,
+    },
+  });
 
-		include: {
-			techinician: true,
-		},
-	});
+  const expirationSeconds = 60 * 60;
 
-    
-	const expirationSeconds = 60 * 60 
+  const otpKey = `techinicia-application-otp:${payload.user.email}`;
+  const otpValue = crypto.randomInt(100000, 1000000).toString();
 
-	const otpKey = `techinicia-application-otp:${payload.user.email}`
-	const otpValue = crypto.randomInt(100000, 1000000).toString();
+  await redisClient.set(otpKey, otpValue, {
+    expiration: {
+      type: "EX",
+      value: expirationSeconds,
+    },
+  });
 
-	await redisClient.set(otpKey, otpValue, {
-		expiration: {
-			type: "EX",
-			value: expirationSeconds,
-		},
-	});
+  const tempatePath = path.join(
+    process.cwd(),
+    "src/app/module/templates/registration-user-otp.ejs",
+  );
 
-	const tempatePath = path.join(
-		process.cwd(),
-		"src/app/module/templates/registration-user-otp.ejs",
-	);
+  const templateData = {
+    name: payload.user.name,
+    email: payload.user.email,
+    otpValue: otpValue,
+    expirationMinutes: expirationSeconds / 60,
+  };
 
-	const templateData = {
-		name: payload.user.name,
-		email : payload.user.email,
-		otpValue: otpValue,
-		expirationMinutes: expirationSeconds / 60,
-	};
+  const html = await ejs.renderFile(tempatePath, templateData);
 
-	const html = await ejs.renderFile(tempatePath, templateData);
+  await transporter.sendMail({
+    from: config.email_sender,
+    to: payload.user.email,
+    subject: "Techinicia Application - Email Verification",
+    html,
+  });
 
-	await transporter.sendMail({
-		from: config.email_sender,
-		to: payload.user.email,
-		subject: "Techinicia Application - Email Verification",
-		html,
-	});
-
-	return techinicianApplication;
+  return techinicianApplication;
 };
 
+const verifyTechinicianEmail = async (
+  payload: IVerifyTechinicianEmailPayload,
+) => {
+  const otp = payload.otp;
+  const email = payload.email.trim().toLowerCase();
+
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      email,
+      role: Role.TECHNICIAN,
+    },
+  });
+
+  if (!existingUser) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "Technician Application Not Found. Please Apply Again.",
+    );
+  }
+
+  if (existingUser.emailVerified) {
+    throw new AppError(httpStatus.CONFLICT, "Email Already Verified");
+  }
+
+  const otpKey = `techinicia-application-otp:${payload.email}`;
+
+  const redisOtp = await redisClient.get(otpKey);
+
+  if (!redisOtp) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "OTP Expired. Your Application Window Has Closed, Please Apply Again.",
+    );
+  }
+
+  if (redisOtp !== otp) {
+    throw new AppError(httpStatus.BAD_REQUEST, "OTP Does Not Match");
+  }
+
+  await redisClient.del(otpKey);
+
+  const verifieUser = await prisma.user.update({
+    where: { id: existingUser.id },
+    data: { emailVerified: true },
+    omit: { password: true },
+    include: { techinician: true },
+  });
+  return verifieUser;
+};
 
 export const TechinicianService = {
-	applyAsTechinician ,
-	// verifyDoctorEmail,
-	// approveDoctor,
-	// getAllDoctors
+  applyAsTechinician,
+ verifyTechinicianEmail,
+  // approveDoctor,
+  // getAllDoctors
 };

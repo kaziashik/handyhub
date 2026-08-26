@@ -42,9 +42,22 @@ const applyAsTechinician = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const verifyTechinicianEmail=catchAsync(async (req: Request, res: Response) => {
+	
+	const payload = req.body;
+
+	const result = await TechinicianService.verifyTechinicianEmail(payload)
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Techinicien Email Verified Successfully",
+		data: result,
+	});
+});
+
 export const TechinicianController = {
   applyAsTechinician,
-  // verifyDoctorEmail,
+  verifyTechinicianEmail,
   // approveDoctor,
   // getAllDoctors
 };

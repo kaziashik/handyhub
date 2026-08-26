@@ -21,4 +21,9 @@ router.post(
 	TechinicianController.applyAsTechinician,
 );
 
+router.post(
+	"/apply-as-techinician/verify-email",
+	TechinicianController.verifyTechinicianEmail,
+);
+
 export const TechinicianRoutes = router;
