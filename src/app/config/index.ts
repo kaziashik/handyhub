@@ -18,7 +18,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 export default {
-   NODE_ENV: process.env.NODE_ENV || "development",
+   node_env: process.env.node_env || "development",
     port: process.env.PORT,
     database_url: process.env.DATABASE_URL,
     bak_url: process.env.APP_URL,

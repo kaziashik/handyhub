@@ -1,24 +1,27 @@
 model User {
-    id            String       @id @default(uuid())
-    name          String
-    email         String       @unique
-    // password      String
-    // googleId      String?      @unique
-    // authProvider  AuthProvider @default(CREDENTIALS)
-    role          Role         @default(CUSTOMER)
-    isVerified    Boolean      @default(false)
-    status        UserStatus   @default(ACTIVE)
-    imageUrl      String       @default("")
-    imagePublicId String       @default("")
-    phone         String?
-    createdAt     DateTime     @default(now())
-    updatedAt     DateTime     @updatedAt
+    id                 String       @id @default(uuid())
+    name               String
+    email              String  @unique
+    password           String?
+    googleId           String?      @unique
+    authProvider       AuthProvider @default(CREDENTIALS)
+    emailVerified      Boolean      @default(false)
+    role               Role         @default(CUSTOMER)
+    status             UserStatus   @default(ACTIVE)
+    needPasswordChange Boolean      @default(false)
+    imageUrl           String       @default("")
+    imagePublicId      String       @default("")
+    isDeleted          Boolean      @default(false)
+    
+    deletedAt          DateTime?
+    createdAt          DateTime     @default(now())
+    updatedAt          DateTime     @updatedAt
 
-    technicianProfile  TechnicianProfile?
-    customerBookings   Booking[]          @relation("CustomerBookings")
-    technicianBookings Booking[]          @relation("TechnicianBookings")
-    reviews            Review[]
-     auths Auth[]
+    auths Auth[]
+
+    techinician       Techinician?
+    // reviews           Review[]
+    technicianProfile TechnicianProfile?
 
     @@map("users")
 }

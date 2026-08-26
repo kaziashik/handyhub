@@ -88,7 +88,7 @@ const verifyUserEmail = async (payload: IVerifyEmailPayload) => {
     throw new Error("User is blocked");
   }
 
-  if (isUserExist?.isVerified) {
+  if (isUserExist?.emailVerified) {
     throw new Error("Email already verified");
   }
 
@@ -289,7 +289,7 @@ const refreshToken = async (token: string) => {
 
   if (!verifiedRefreshToken.success || !verifiedRefreshToken.data) {
     throw new Error(
-      config.NODE_ENV === "development"
+      config.node_env === "development"
         ? verifiedRefreshToken.error
         : "Invalid refresh token",
     );
@@ -347,7 +347,7 @@ const forgotPassword = async (payload: IForgotPasswordPayload) => {
     throw new Error("User is blocked");
   }
 
-  if (!isUserExist.isVerified) {
+  if (!isUserExist.emailVerified) {
     throw new Error("User not verified");
   }
 
@@ -415,7 +415,7 @@ const resetPassword = async (payload : IResetPasswordPayload) => {
 		throw new Error("User is Blocked")
 	}
 
-	if (!isUserExist.isVerified) {
+	if (!isUserExist.emailVerified) {
 		throw new Error("User Not Verified")
 	}
 
