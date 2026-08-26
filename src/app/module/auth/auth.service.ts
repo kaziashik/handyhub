@@ -124,7 +124,7 @@ const verifyUserEmail = async (payload: IVerifyEmailPayload) => {
       email: userPayload.email,
       role: userPayload.role,
       status: "ACTIVE",
-      isVerified: true,
+      emailVerified: true,
       phone: userPayload.phone,
       auths: {
         create: {

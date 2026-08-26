@@ -7,15 +7,21 @@ import { catchAsync } from "../utils/catchAsync";
 import { jwtUtils } from "./jwt";
 import { Role } from "../../generated/prisma/enums";
 
-declare global {
-  namespace Express {
-    interface User {
+
+export interface RequestUser{
+  
       email: string;
       name: string;
       userId: string;
       role: Role;
-    }
-  }
+    
+}
+declare global {
+	namespace Express {
+		interface Request {
+			user?: RequestUser;
+		}
+	}
 }
 
 // auth(Role.ADMIN, Role.USER, Role.Author)

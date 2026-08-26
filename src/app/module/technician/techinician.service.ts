@@ -12,15 +12,17 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 import config from "../../config";
-import { Role } from "../../../generated/prisma/enums";
+import { Role, TechinicianVerificationStatus } from "../../../generated/prisma/enums";
 import { redisClient } from "../../lib/redits";
 import path from "path";
 import ejs from "ejs";
 import { transporter } from "../../lib/nodemailer";
 import {
   IApplyAsTechnicianPayload,
+  IApproveTechinicianPayload,
   IVerifyTechinicianEmailPayload,
 } from "./techinician.interface";
+import { RequestUser } from "../../middleware/checkAuth";
 
 const applyAsTechinician = async (
   payload: IApplyAsTechnicianPayload,
@@ -218,9 +220,90 @@ const verifyTechinicianEmail = async (
   return verifieUser;
 };
 
+const approveTechinician= async(payload: IApproveTechinicianPayload, reviewer: RequestUser)=>{
+
+	const {  techinicianId, verificationStatus, rejectionReason } = payload;
+
+	
+	const existingTechinician = await prisma.techinician.findUnique({
+		where: { id: techinicianId },
+		include: { user: true },
+	});
+	if (!existingTechinician) {
+		throw new AppError(httpStatus.NOT_FOUND, "Techinician Application Not Found");
+	}
+
+	if (existingTechinician.isDeleted) {
+		throw new AppError(httpStatus.GONE, "Technician Application Has Been Deleted");
+	}
+
+	if (!existingTechinician.user.emailVerified) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"Techinician Has Not Verified Their Email Yet. Application Cannot Be Reviewed.",
+		);
+	}
+
+	if (existingTechinician.verificationStatus !==  TechinicianVerificationStatus.PENDING) {
+		throw new AppError(
+			httpStatus.CONFLICT,
+			`Techinician Application Has Already Been ${existingTechinician.verificationStatus.toLowerCase()}`,
+		);
+	}
+
+	if (
+		verificationStatus === TechinicianVerificationStatus.REJECTED &&
+		!rejectionReason
+	) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"Rejection Reason Is Required When Rejecting A Techinician Application",
+		);
+	}
+
+	const updateTechinician=await prisma.techinician.update({
+		where:{id:techinicianId},
+		data:{
+			verificationStatus,
+			rejectionReason:verificationStatus=== TechinicianVerificationStatus.REJECTED ? rejectionReason :null,
+			reviewedBy : reviewer.userId,
+			reviewedAt: new Date(),
+		}
+	});
+
+	const isApproved=verificationStatus === TechinicianVerificationStatus.APPROVED;
+	const tempatePath = path.join(
+		process.cwd(),
+		`src/app/module/templates/${isApproved
+			? "techinician-application-approved.ejs"
+			: "techinician-application-rejected.ejs"
+		}`,
+	)
+
+	const templateData = {
+		name: updateTechinician.name,
+		reason: updateTechinician.rejectionReason,
+	};
+
+	const html = await ejs.renderFile(tempatePath, templateData);
+
+	await transporter.sendMail({
+		from: config.email_sender,
+		to: updateTechinician.email,
+		subject: isApproved
+			? "Your Techinician Application Has Been Approved"
+			: "Your Techinician Application Has Been Rejected",
+		html,
+	});
+
+	return updateTechinician
+
+
+}
+
 export const TechinicianService = {
   applyAsTechinician,
  verifyTechinicianEmail,
-  // approveDoctor,
+  approveTechinician,
   // getAllDoctors
 };

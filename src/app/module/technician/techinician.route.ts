@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { upload } from "../../lib/multer";
 import { TechinicianController } from "./techinician.controller";
+import { Role } from "../../../generated/prisma/enums";
+import { auth } from "../../middleware/checkAuth";
+
 
 const router = Router();
 
@@ -24,6 +27,11 @@ router.post(
 router.post(
 	"/apply-as-techinician/verify-email",
 	TechinicianController.verifyTechinicianEmail,
+);
+
+router.post(
+	"/approve-techinician",auth(Role.ADMIN),
+	TechinicianController.approveTechinician,
 );
 
 export const TechinicianRoutes = router;

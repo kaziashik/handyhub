@@ -26,7 +26,7 @@ export interface IVerifyTechinicianEmailPayload {
 
 
 export interface IApproveTechinicianPayload {
-    doctorId: string;
+    techinicianId: string;
     verificationStatus: TechinicianVerificationStatus;
     rejectionReason: string;
 }
