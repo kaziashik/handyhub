@@ -7,7 +7,7 @@ import config from "./app/config";
 import { AuthRoutes } from "./app/module/auth/auth.route";
 import { UserRoutes } from "./app/module/user/user.route";
 import passport from "passport";
-import { AppointementRoutes } from "./app/module/booking/booking.route";
+import { AppointementRoutes } from "./app/module/booking/appointment.route";
 import { TechinicianRoutes } from "./app/module/technician/techinician.route";
 import { ScheduleRoutes } from "./app/module/schedule/schedule.route";
 
