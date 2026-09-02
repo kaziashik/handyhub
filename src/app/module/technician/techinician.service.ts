@@ -12,7 +12,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 import config from "../../config";
-import { Role, TechinicianVerificationStatus } from "../../../generated/prisma/enums";
+import { AuthProvider, Role, TechinicianVerificationStatus } from "../../../generated/prisma/enums";
 import { redisClient } from "../../lib/redits";
 import path from "path";
 import ejs from "ejs";
@@ -112,29 +112,35 @@ const applyAsTechinician = async (
 
   const techinicianApplication = await prisma.user.create({
     data: {
-      ...payload.user,
-      password: hashedPassword,
-      role: Role.TECHNICIAN,
-      needPasswordChange: true,
-      techinician: {
-        create: {
-          name: payload.user.name,
-          email: payload.user.email,
-          ...payload.technician,
-          resume: resumeUploadResult.secure_url,
-          resumePublicId: resumeUploadResult.public_id,
-          additionalFiles: additionalFilesUploadResults.map((file) => ({
-            url: file.secure_url,
-            publicId: file.public_id,
-          })),
+        ...payload.user,
+        role: Role.TECHNICIAN,
+        needPasswordChange: true,
+        auths: {
+            create: {
+                provider: AuthProvider.CREDENTIALS,
+                providerId: payload.user.email,
+                password: hashedPassword,
+            },
         },
-      },
+        techinician: {
+            create: {
+                name: payload.user.name,
+                email: payload.user.email,
+                ...payload.technician,
+                resume: resumeUploadResult.secure_url,
+                resumePublicId: resumeUploadResult.public_id,
+                additionalFiles: additionalFilesUploadResults.map((file) => ({
+                    url: file.secure_url,
+                    publicId: file.public_id,
+                })),
+            },
+        },
     },
-
     include: {
-      techinician: true,
+        techinician: true,
+        auths: { omit: { password: true } },
     },
-  });
+});
 
   const expirationSeconds = 60 * 60;
 

@@ -61,3 +61,8 @@ enum AppointmentStatus {
   ONGOING
   COMPLETED
 }
+
+enum ScheduleStatus {
+  DRAFT
+  PUBLISHED
+}

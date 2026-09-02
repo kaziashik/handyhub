@@ -9,6 +9,7 @@ import { UserRoutes } from "./app/module/user/user.route";
 import passport from "passport";
 import { AppointementRoutes } from "./app/module/booking/booking.route";
 import { TechinicianRoutes } from "./app/module/technician/techinician.route";
+import { ScheduleRoutes } from "./app/module/schedule/schedule.route";
 
 
 const app: Application = express();
@@ -37,5 +38,7 @@ app.use('/api/auth', AuthRoutes)
 app.use("/api/users", UserRoutes);
 app.use("/api/appointment", AppointementRoutes);
 app.use("/api/v1/techinician", TechinicianRoutes);
+app.use("/api/v1/schedule", ScheduleRoutes);
+app.use("/api/booking",AppointementRoutes)
 
 export default app;

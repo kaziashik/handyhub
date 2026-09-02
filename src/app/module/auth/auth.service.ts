@@ -138,9 +138,19 @@ const verifyUserEmail = async (payload: IVerifyEmailPayload) => {
           create: {},
         },
       }),
+      ...(userPayload.role === "CUSTOMER" && {
+        customer: {
+          create: {
+            name: userPayload.name,
+            email: userPayload.email,
+            contactNumber: userPayload.phone,
+          },
+        },
+      }),
     },
     include: {
       technicianProfile: true,
+      customer: true,
       auths: { omit: { password: true } },
     },
   });
@@ -166,7 +176,7 @@ const verifyUserEmail = async (payload: IVerifyEmailPayload) => {
     html,
   });
 
-  const { technicianProfile, auths, ...user } = createdUser;
+  const { technicianProfile, customer, auths, ...user } = createdUser;
   const jwtPayload = {
     userId: user.id,
     name: user.name,
@@ -189,6 +199,7 @@ const verifyUserEmail = async (payload: IVerifyEmailPayload) => {
   return {
     user,
     technicianProfile,
+    customer,
     accessToken,
     refreshToken,
   };
@@ -217,9 +228,13 @@ const loginUser = async (payload: ILoginUserPayload) => {
     throw new Error("User is deleted");
   }
 
+  console.log("chek_auths_array", JSON.stringify(user.auths, null, 2));
   const credentialsAuth = user.auths.find(
     (auth) => auth.provider === "CREDENTIALS",
   );
+
+  console.log("chek_credentialsAuth",credentialsAuth);
+  console.log("chek_credentialsAuth",credentialsAuth?.password);
 
   if (!credentialsAuth || !credentialsAuth.password) {
     throw new Error(

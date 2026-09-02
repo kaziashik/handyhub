@@ -4,7 +4,7 @@ import config from "./app/config";
 import { prisma } from "./app/lib/prisma";
 import { transporter } from "./app/lib/nodemailer";
 import { redisClient } from "./app/lib/redits";
-import { seedSuperAdmin } from "./app/utils/seend";
+import { seedSuperAdmin, seedTesterTechinican } from "./app/utils/seend";
 import { deleteUnverifiedTechinician } from "./app/lib/cron";
 
 
@@ -23,6 +23,7 @@ async function main() {
         console.log("NodeMailer connected successfully");
 
         await seedSuperAdmin()
+        await seedTesterTechinican()
         await deleteUnverifiedTechinician();
 
     app.listen(PORT, () => {
