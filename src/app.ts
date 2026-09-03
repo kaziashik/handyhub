@@ -10,6 +10,7 @@ import passport from "passport";
 import { AppointementRoutes } from "./app/module/booking/appointment.route";
 import { TechinicianRoutes } from "./app/module/technician/techinician.route";
 import { ScheduleRoutes } from "./app/module/schedule/schedule.route";
+import { AnalyticsRoutes } from "./app/module/analytics/analytics.route";
 
 
 const app: Application = express();
@@ -40,5 +41,7 @@ app.use("/api/appointment", AppointementRoutes);
 app.use("/api/v1/techinician", TechinicianRoutes);
 app.use("/api/v1/schedule", ScheduleRoutes);
 app.use("/api/booking",AppointementRoutes)
+app.use("/api/v1/analytics", AnalyticsRoutes);
+
 
 export default app;
