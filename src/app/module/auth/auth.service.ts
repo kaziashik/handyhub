@@ -556,7 +556,7 @@ const googleLogin = async (payload: IGoogleLoginPayload) => {
         name: googleIdTokenPayload.name,
         email,
         role: "CUSTOMER",
-        isVerified: true,
+        emailVerified: true,
         auths: {
           create: {
             provider: "GOOGLE",

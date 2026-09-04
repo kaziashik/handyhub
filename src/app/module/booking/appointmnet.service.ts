@@ -153,7 +153,7 @@ const bookAppointment = async (payload: any, user: RequestUser) => {
       body: JSON.stringify({
         mode: "0011",
         payerReference: user.email,
-        callbackURL: `${config.bkash_callback_url}/appointment/book-appointment/payment/callback`,
+        callbackURL: `${config.bkash_callback_url}/api/v1/appointment/book-appointment/payment/callback`,
         amount: amount,
         currency: "BDT",
         intent: "sale",
@@ -253,7 +253,7 @@ const bookAppointmentCallback = async (query: Record<string, any>) => {
 					where: { id: appointmentId },
 					include: {
 						schedule: true,
-						customer: true,       // fixed: relation field is "patient", not "customer"
+						customer: true,
 						techinician: true,
 					},
 				});
@@ -339,8 +339,6 @@ const bookAppointmentCallback = async (query: Record<string, any>) => {
 			{ maxWait: 10000, timeout: 30000 },
 		);
 
-		// fixed: source is appointment.patient (the actual relation field name),
-		// not appointment.customer
 		const customer = appointment.customer;
 
 		if (!customer) {
@@ -498,7 +496,7 @@ const payAppointment = async (payload: IPayAppointmentPayload, user: RequestUser
 				mode: "0011",
 				// payerReference: "0123456789", //user email or phone number
 				payerReference: user.email, //user email or phone number
-				callbackURL: `${config.bkash_callback_url}/book-appointment/payment/callback`,
+				callbackURL: `${config.bkash_callback_url}/api/v1/appointment/book-appointment/payment/callback`,
 				amount: amount,
 				currency: "BDT",
 				intent: "sale",
@@ -533,12 +531,12 @@ const cancelAppointment = async (payload: ICancelAppointmentPayload, user : Requ
 		const appointmentId = payload.appointmentId;
 
 		const existingAppointment = await tx.apppointment.findUnique({
-			where: {
-				id: appointmentId,
-				patient : {
-					email : user.email
-				}
-			},
+		where: {
+			id: appointmentId,
+			customer : {
+				email : user.email
+			}
+		},
 			include: {
 				payment: true,
 				schedule : true
@@ -660,16 +658,16 @@ const updateAppointmentStatus = async (
 	payload : IUpdateAppointmentStatusPayload,
 	user : RequestUser
 ) => {
-	const doctor = await prisma.techinician.findUnique({
+	const techinician = await prisma.techinician.findUnique({
 		where: { userId: user.userId },
 	});
 
-	if (!doctor) {
-		throw new AppError(httpStatus.NOT_FOUND, "Doctor Profile Not Found");
+	if (!techinician) {
+		throw new AppError(httpStatus.NOT_FOUND, "Techinician Profile Not Found");
 	}
 
 	const appointment = await prisma.apppointment.findUnique({
-		where: { id: appointmentId, doctorId : doctor.id },
+		where: { id: appointmentId, techinicianId : techinician.id },
 	});
 
 	if (!appointment) {
@@ -730,7 +728,7 @@ const updateAppointmentStatus = async (
 	return updatedAppointment
 }
 
-//patient appointments
+//customer appointments
 const getMyAppointments = async (query : IQuery, user : RequestUser) => {
 
 
@@ -740,17 +738,17 @@ const getMyAppointments = async (query : IQuery, user : RequestUser) => {
 	const sortBy = query.sortBy ? query.sortBy : "createdAt";
 	const sortOrder = query.sortOrder ? query.sortOrder : "desc"
 
-	const patient = await prisma.customer.findUnique({
+	const customer = await prisma.customer.findUnique({
 		where: { userId: user.userId },
 	});
 
-	if (!patient) {
-		throw new AppError(httpStatus.NOT_FOUND, "Patient Profile Not Found");
+	if (!customer) {
+		throw new AppError(httpStatus.NOT_FOUND, "Customer Profile Not Found");
 	}
 
 	const andConditions: ApppointmentWhereInput[] = [
 		{
-			customerId : patient.id
+			customerId : customer.id
 		}
 	];
 
@@ -764,7 +762,7 @@ const getMyAppointments = async (query : IQuery, user : RequestUser) => {
 		skip,
 		orderBy: { [sortBy] : sortOrder},
 		include: {
-			doctor: { select: { id: true, name: true, specialization: true } },
+			techinician: { select: { id: true, name: true, specialization: true } },
 			schedule: true,
 			payment: true,
 		},
@@ -787,7 +785,7 @@ const getMyAppointments = async (query : IQuery, user : RequestUser) => {
 
 }
 
-//doctor appointments
+//techinician appointments
 const getDoctorAppointments = async (query: IQuery, user: RequestUser) => {
 
 	const limit = query.limit ? Number(query.limit) : 10;
@@ -796,17 +794,17 @@ const getDoctorAppointments = async (query: IQuery, user: RequestUser) => {
 	const sortBy = query.sortBy ? query.sortBy : "createdAt";
 	const sortOrder = query.sortOrder ? query.sortOrder : "desc"
 
-	const doctor = await prisma.techinician.findUnique({
+	const techinician = await prisma.techinician.findUnique({
 		where: { userId: user.userId },
 	});
 
-	if (!doctor) {
-		throw new AppError(httpStatus.NOT_FOUND, "Doctor Profile Not Found");
+	if (!techinician) {
+		throw new AppError(httpStatus.NOT_FOUND, "Techinician Profile Not Found");
 	}
 
 	const andConditions: ApppointmentWhereInput[] = [
 		{
-			techinicianId : doctor.id
+			techinicianId : techinician.id
 		}
 	];
 
@@ -857,18 +855,18 @@ const getAllAppointments = async (query : IQuery) => {
 		andConditions.push({ status: query.status });
 	}
 
-	if (query.doctorId) {
-		andConditions.push({ techinicianId: query.doctorId });
+	if (query.techinicianId) {
+		andConditions.push({ techinicianId: query.techinicianId });
 	}
 
-	if (query.patientId) {
+	if (query.customerId) {
 		andConditions.push({ customerId: query.customerId });
 	}
 
-	if(query.doctorEmail){
+	if(query.techinicianEmail){
 		andConditions.push({
 			techinician  : {
-				email : query.doctorEmail
+				email : query.techinicianEmail
 			}
 		})
 	}
@@ -915,7 +913,7 @@ const getSingleAppointment = async (appointmentId : string, user : RequestUser) 
 	const appointment = await prisma.apppointment.findUnique({
 		where: { id: appointmentId },
 		include: {
-			patient: { select: { id: true, name: true, email: true, userId: true } },
+			customer: { select: { id: true, name: true, email: true, userId: true } },
 			techinician: {
 				select: { id: true, name: true, specialization: true, userId: true },
 			},
@@ -928,8 +926,8 @@ const getSingleAppointment = async (appointmentId : string, user : RequestUser) 
 		throw new AppError(httpStatus.NOT_FOUND, "Appointment Not Found");
 	}
 
-	if(user.role === Role.TECHNICIAN){
-		if(appointment.customerId !== user.userId){
+	if(user.role === Role.CUSTOMER){
+		if(appointment.customer.userId !== user.userId){
 			throw new AppError(
 				httpStatus.FORBIDDEN,
 				"You Are Not Allowed To View This Appointment",

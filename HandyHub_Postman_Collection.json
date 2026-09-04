@@ -1,0 +1,750 @@
+{
+	"info": {
+		"_postman_id": "handyhub-api-v1-2026",
+		"name": "HandyHub API v1",
+		"description": "Complete API collection for HandyHub - Service Booking Platform\n\nBase URL: http://localhost:5000\nAll routes use /api/v1/ prefix\n\nAuthentication: JWT tokens stored in cookies or Bearer token in Authorization header",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "appointmentId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "scheduleId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "techinicianId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "01 - Authentication",
+			"item": [
+				{
+					"name": "Register User (Customer)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    pm.environment.set('userEmail', pm.request.body.raw.email);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"role\": \"CUSTOMER\",\n  \"phone\": \"+1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('accessToken', jsonData.data.accessToken);",
+									"    pm.environment.set('refreshToken', jsonData.data.refreshToken);",
+									"    pm.environment.set('userId', jsonData.data.user.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"otp\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/verify-email",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "verify-email"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('accessToken', jsonData.data.accessToken);",
+									"    pm.environment.set('refreshToken', jsonData.data.refreshToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "me"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/refresh-token",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "refresh-token"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "logout"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/forgot-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "forgot-password"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewSecurePass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/reset-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "reset-password"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Google Login",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"idToken\": \"GOOGLE_ID_TOKEN_HERE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/google",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "google"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "02 - User Profile",
+			"item": [
+				{
+					"name": "Upload Profile Image",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [{"key": "profileImage", "type": "file", "src": []}]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/users/profile-image",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "users", "profile-image"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "03 - Appointments",
+			"item": [
+				{
+					"name": "Book Appointment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"scheduleId\": \"{{scheduleId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/appointment/book-appointment",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "appointment", "book-appointment"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pay for Appointment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"appointmentId\": \"{{appointmentId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/appointment/pay-appointment",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "appointment", "pay-appointment"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Appointment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"appointmentId\": \"{{appointmentId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/appointment/cancel-appointment",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "appointment", "cancel-appointment"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Appointments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/appointment/my-appointments?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "appointment", "my-appointments"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"},
+								{"key": "status", "value": "CONFIRMED", "disabled": true}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Technician Appointments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/appointment/doctor-appointments?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "appointment", "doctor-appointments"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Appointments (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/appointment/all-appointments?page=1&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "appointment", "all-appointments"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "20"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Appointment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/appointment/{{appointmentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "appointment", "{{appointmentId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Appointment Status (Technician)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "PATCH",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"ONGOING\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/appointment/update-status/{{appointmentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "appointment", "update-status", "{{appointmentId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "04 - Schedules",
+			"item": [
+				{
+					"name": "Create Schedule (Technician)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"startDateTime\": \"2026-09-05T09:00:00Z\",\n  \"endDateTime\": \"2026-09-05T15:00:00Z\",\n  \"meetingLink\": \"https://meet.google.com/xyz-abc-def\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedule/create-schedule",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "schedule", "create-schedule"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Schedules (Technician)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedule/my-schedules?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "schedule", "my-schedules"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "10"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Schedules (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedule/all-schedules?page=1&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "schedule", "all-schedules"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "20"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Today's Schedules (Public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedule/todays-schedule?doctorId={{techinicianId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "schedule", "todays-schedule"],
+							"query": [{"key": "doctorId", "value": "{{techinicianId}}"}]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Schedule (Technician)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "PATCH",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"startDateTime\": \"2026-09-05T10:00:00Z\",\n  \"endDateTime\": \"2026-09-05T16:00:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedule/update-schedule/{{scheduleId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "schedule", "update-schedule", "{{scheduleId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Publish Schedule (Technician)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedule/publish-schedule/{{scheduleId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "schedule", "publish-schedule", "{{scheduleId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Schedule by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedule/{{scheduleId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "schedule", "{{scheduleId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Schedule (Technician)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/schedule/{{scheduleId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "schedule", "{{scheduleId}}"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "05 - Technicians",
+			"item": [
+				{
+					"name": "Apply as Technician",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{"key": "user[name]", "value": "Dr. Smith", "type": "text"},
+								{"key": "user[email]", "value": "smith@example.com", "type": "text"},
+								{"key": "user[password]", "value": "SecurePass123!", "type": "text"},
+								{"key": "user[phone]", "value": "+1234567890", "type": "text"},
+								{"key": "technician[specialization]", "value": "Plumbing", "type": "text"},
+								{"key": "resume", "type": "file", "src": []}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/techinician/apply-as-techinician",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "techinician", "apply-as-techinician"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Technician Email",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"smith@example.com\",\n  \"otp\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/techinician/apply-as-techinician/verify-email",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "techinician", "apply-as-techinician", "verify-email"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Approve Technician (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"techinicianId\": \"{{techinicianId}}\",\n  \"verificationStatus\": \"APPROVED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/techinician/approve-techinician",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "techinician", "approve-techinician"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Technicians (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/techinician/all-techinician?page=1&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "techinician", "all-techinician"],
+							"query": [
+								{"key": "page", "value": "1"},
+								{"key": "limit", "value": "20"}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "06 - Analytics",
+			"item": [
+				{
+					"name": "Customer Analytics",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/analytics/customer-analytics",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "analytics", "customer-analytics"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Technician Analytics",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/analytics/techician-analytics",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "analytics", "techician-analytics"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Admin Analytics",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/analytics/admin-analytics",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "analytics", "admin-analytics"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

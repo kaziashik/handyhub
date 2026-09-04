@@ -5,6 +5,7 @@ import { userValidation } from "./auth.validation";
 import { Role } from "../../../generated/prisma/enums";
 import { auth } from "../../middleware/checkAuth";
 import passport from "passport";
+import { authLimiter } from "../../middleware/rateLimiter";
 
 
 const router = Router();
@@ -12,16 +13,20 @@ const router = Router();
 
 
 router.post(
-  "/register",validateRequest(userValidation.RegisterUserZodSchema),
+  "/register",
+  authLimiter,
+  validateRequest(userValidation.RegisterUserZodSchema),
   AuthController.registerUse,
 );
 
 router.post("/verify-email",
+	authLimiter,
 	validateRequest(userValidation.userEmailVerifyZodSchema),
 	 AuthController.verifyUserEmail);
 
 
    router.post("/login",
+	authLimiter,
 	validateRequest(userValidation.LoginZodSchema),
 	 AuthController.loginUser);
 
@@ -38,10 +43,12 @@ router.post("/refresh-token", AuthController.refreshToken);
 router.post("/logout", AuthController.logout);
 
 router.post("/forgot-password",
+	authLimiter,
 	validateRequest(userValidation.ForgotPasswordZodSchema),
 	 AuthController.forgotPassword);
 
    router.post("/reset-password",
+	authLimiter,
 	validateRequest(userValidation.ResetPasswordZodSchema),
 	 AuthController.resetPassword);
 
@@ -51,7 +58,7 @@ router.post("/forgot-password",
 //   passport.authenticate("google", { scope: ["profile", "email"] }),
 // );
 
-router.post("/google", AuthController.googleLogin);              
+router.post("/google", authLimiter, AuthController.googleLogin);              
 
 
 

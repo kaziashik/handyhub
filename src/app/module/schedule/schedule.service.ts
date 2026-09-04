@@ -151,7 +151,7 @@ const getMySchedules = async (query : IQuery, user : RequestUser) => {
         include : {
             appointments : {
                 include : {
-                    patient : true
+                    customer : true
                 }
             }
         }
@@ -182,7 +182,7 @@ const getAllSchedules = async (query : IQuery) => {
     const andConditions: ScheduleWhereInput[] = [];
 
     if (query.techinicianId) {
-        andConditions.push({ techinicianId: query.doctorId });
+        andConditions.push({ techinicianId: query.techinicianId });
     }
     if (query.email) {
         andConditions.push({ techinician : {
@@ -222,7 +222,7 @@ const getAllSchedules = async (query : IQuery) => {
         include: {
             appointments: {
                 include: {
-                    patient: true
+                    customer: true
                 }
             }
         }
@@ -258,7 +258,7 @@ const getScheduleById = async (scheduleId : string) => {
             },
             appointments: {
                 include: {
-                    patient: true
+                    customer: true
                 },
             }
         },

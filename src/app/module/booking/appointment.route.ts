@@ -4,22 +4,26 @@ import { auth } from "../../middleware/checkAuth";
 import { Role } from "../../../generated/prisma/enums";
 import { validateRequest } from "../../middleware/validateRequest";
 import { BookAppointmentValidationZodSchema, UpdateAppointmentStatusValidationZodSchema } from "./appointmnet.validation";
+import { paymentLimiter } from "../../middleware/rateLimiter";
 
 const router = Router();
 
 router.post(
 	"/book-appointment",
+	paymentLimiter,
 	auth(Role.CUSTOMER),
 	validateRequest(BookAppointmentValidationZodSchema),
 	AppointmentController.bookAppointment,
 );
 router.post(
 	"/pay-appointment",
+	paymentLimiter,
 	auth(Role.CUSTOMER),
 	AppointmentController.payAppointment,
 );
 router.post(
 	"/cancel-appointment",
+	paymentLimiter,
 	auth(Role.CUSTOMER, Role.ADMIN),
 	AppointmentController.cancelAppointment,
 );
